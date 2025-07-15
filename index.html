@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sans Custom Attack Generator</title>
+    <style>
+        /* Embedded CSS for styling */
+        @font-face {
+            font-family: 'SansFont';
+            src: url('font.otf') format('opentype');
+        }
+
+        :root {
+            --border-style: 4px solid #fff;
+            --padding: 15px;
+            --margin: 15px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'SansFont', 'Courier New', monospace;
+            font-size: 18px;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 2.5em;
+        }
+
+        .battle-box {
+            border: var(--border-style);
+            padding: var(--padding);
+            margin-bottom: var(--margin);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea,
+        select {
+            /* Added select */
+            background-color: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 10px;
+            width: 100%;
+            font-family: 'SansFont', 'Courier New', monospace;
+            font-size: 1em;
+        }
+
+        textarea {
+            height: 150px;
+            resize: vertical;
+        }
+
+        .api-settings {
+            border: 2px dashed #555;
+            padding: var(--padding);
+            margin-top: 20px;
+        }
+
+        .api-setting-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .api-setting-row label {
+            flex-grow: 1;
+            margin-bottom: 0;
+            margin-right: 10px;
+        }
+
+        .api-setting-row input[type="text"],
+        .api-setting-row input[type="password"],
+        .api-setting-row select {
+            /* Added select */
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .api-setting-row input[type="checkbox"] {
+            width: auto;
+            margin-left: 5px;
+        }
+
+        button {
+            background-color: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 10px 20px;
+            font-family: 'SansFont', 'Courier New', monospace;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #fff;
+            color: #000;
+        }
+
+        button:disabled {
+            color: #777;
+            border-color: #777;
+            cursor: not-allowed;
+        }
+
+        /* --- MODIFIED & NEW STYLES for Output Section --- */
+        #output-container {}
+        
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .output-buttons {
+            display: flex;
+            gap: 10px; /* Adds space between buttons */
+        }
+
+        #copy-btn,
+        #download-btn {
+            font-size: 0.8em;
+            padding: 5px 10px;
+            margin-top: 0; /* Override general button margin */
+        }
+
+        /* === FIX: Apply box styling to the <pre> container === */
+        #output-container pre {
+            background-color: #111;
+            border: 2px solid #555;
+            padding: 15px;
+            min-height: 200px;
+            margin: 0; /* Reset default browser margin on <pre> */
+        }
+
+        /* === FIX: Style the <code> tag for text flow only === */
+        #output-code {
+            display: block; /* Ensures it fills the <pre> container */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9em;
+        }
+        /* --- END OF MODIFICATIONS --- */
+
+        #status {
+            margin-top: 15px;
+            color: #ff0;
+            /* yellow */
+            height: 2em;
+            text-align: center;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>* sans's attack-o-matic (Sans Attack Generator)</h1>
+
+        <div id="inputs" class="battle-box">
+            <div class="input-group">
+                <label for="userPrompt">* so, what's the big idea? (What kind of attack are you thinking of?)</label>
+                <textarea
+                    id="userPrompt"
+                    placeholder="* e.g., a real bad time. maybe some bones, some blasters... you know the drill. make sure to include a duration though."
+                ></textarea>
+            </div>
+
+            <button id="generate-btn" disabled>* get dunked on (Generate)</button>
+
+            <div class="api-settings">
+                <p style="margin-top: 0; font-style: italic;">* api settings</p>
+                <div class="api-setting-row">
+                    <label for="apiType">* api type</label>
+                    <select id="apiType">
+					    <option value="google_gemini">Google Gemini</option>
+                        <option value="openai_compatible">OpenAI Compatible</option>
+                    </select>
+                    <input type="checkbox" id="saveApiType" checked />
+                    <label for="saveApiType" style="display: inline;">Save?</label>
+                </div>
+                <div class="api-setting-row">
+                    <label for="apiEndpoint">* api endpoint url</label>
+                    <input
+                        type="text"
+                        id="apiEndpoint"
+                        value="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+                    />
+                    <input type="checkbox" id="saveEndpoint" checked />
+                    <label for="saveEndpoint" style="display: inline;">Save?</label>
+                </div>
+                <div class="api-setting-row">
+                    <label for="modelName">* model name</label>
+                    <input type="text" id="modelName" value="gemini-2.5-flash" />
+                    <input type="checkbox" id="saveModelName" checked />
+                    <label for="saveModelName" style="display: inline;">Save?</label>
+                </div>
+                <div class="api-setting-row">
+                    <label for="apiKey">* api key</label>
+                    <input type="password" id="apiKey" placeholder="sk-... or your OpenRouter key, etc." />
+                    <input type="checkbox" id="saveApiKey" />
+                    <label for="saveApiKey" style="display: inline;">Save?</label>
+                </div>
+            </div>
+
+            <div style="border-top: 2px dashed #555; margin-top: 20px; padding-top: 15px;">
+                <p style="margin: 0; font-style: italic;">
+                    * hey, you can grab a free api key right here: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color: #fff; text-decoration: underline;">https://aistudio.google.com/apikey</a>
+                </p>
+            </div>
+
+        </div>
+
+        <div id="output-container" class="battle-box">
+            <div class="output-header">
+                <label for="output-code" style="margin-bottom: 0;">* here we go.</label>
+                <div class="output-buttons">
+                    <button id="download-btn">* take it with ya (Download)</button>
+                    <button id="copy-btn">* remember this (Copy)</button>
+                </div>
+            </div>
+            <pre><code id="output-code">* ... maybe something will happen. maybe not. (... your generated attack will appear here ...)</code></pre>
+        </div>
+
+        <p id="status">* hmm... seems like the documentation is loading.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- FILE LISTS ---
+            const docFileNames = [
+                'README.md',
+                'Generalities.md',
+                'Sans.md',
+                'Attacks.md',
+                'Combat.md',
+                'Programming.md',
+                'Math.md',
+                'Jumps.md',
+            ];
+            const exampleFileNames = [
+                'Loops.csv',
+                'Labels.csv',
+                'sans_bonegap1.csv',
+                'sans_bonegap1fast.csv',
+                'sans_bonegap2.csv',
+                'sans_boneslideh.csv',
+                'sans_boneslidev.csv',
+                'sans_bonestab1.csv',
+                'sans_bonestab2.csv',
+                'sans_bonestab3.csv',
+                'sans_bluebone.csv',
+                'sans_final.csv',
+                'sans_intro.csv',
+                'sans_multi1.csv',
+                'sans_multi2.csv',
+                'sans_multi3.csv',
+                'sans_platformblaster.csv',
+                'sans_platformblasterfast.csv',
+                'sans_platforms1.csv',
+                'sans_platforms2.csv',
+                'sans_platforms3.csv',
+                'sans_platforms4.csv',
+                'sans_platforms4hard.csv',
+                'sans_randomblaster1.csv',
+                'sans_randomblaster2.csv',
+                'sans_spare.csv',
+            ];
+
+            // --- GLOBAL VARIABLES (to store fetched content) ---
+            const docsContent = {};
+            const examplesContent = {};
+
+            // --- GLOBAL ELEMENTS ---
+            const generateBtn = document.getElementById('generate-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const userPromptInput = document.getElementById('userPrompt');
+            const outputCode = document.getElementById('output-code');
+            const status = document.getElementById('status');
+            // API settings inputs
+            const apiTypeSelect = document.getElementById('apiType');
+            const apiEndpointInput = document.getElementById('apiEndpoint');
+            const modelNameInput = document.getElementById('modelName');
+            const apiKeyInput = document.getElementById('apiKey');
+            // Save checkboxes
+            const saveApiTypeCheckbox = document.getElementById('saveApiType');
+            const saveEndpointCheckbox = document.getElementById('saveEndpoint');
+            const saveModelNameCheckbox = document.getElementById('saveModelName');
+            const saveApiKeyCheckbox = document.getElementById('saveApiKey');
+
+            // --- LOCAL STORAGE KEY CONSTANTS ---
+            const LS_KEY_APITYPE = 'sans_gen_apiType';
+            const LS_KEY_ENDPOINT = 'sans_gen_apiEndpoint';
+            const LS_KEY_MODELNAME = 'sans_gen_modelName';
+            const LS_KEY_APIKEY = 'sans_gen_apiKey';
+            const LS_KEY_SAVE_APITYPE = 'sans_gen_saveApiType';
+            const LS_KEY_SAVE_ENDPOINT = 'sans_gen_saveEndpoint';
+            const LS_KEY_SAVE_MODELNAME = 'sans_gen_saveModelName';
+            const LS_KEY_SAVE_APIKEY = 'sans_gen_saveApiKey';
+
+            // --- FUNCTIONS ---
+
+            /** Fetches files and stores content. */
+            async function fetchFiles(fileList, basePath, targetObject) {
+                const fetchPromises = fileList.map(async (filename) => {
+                    const response = await fetch(`${basePath}/${filename}`);
+                    if (!response.ok) {
+                        throw new Error(
+                            `Failed to fetch ${filename} from ${basePath}. Status: ${response.status}`
+                        );
+                    }
+                    targetObject[filename] = await response.text();
+                });
+                await Promise.all(fetchPromises);
+            }
+
+            /** Loads saved API settings from localStorage. */
+            function loadSavedSettings() {
+                // Load checkbox states first, default to true for Endpoint/Model, false for API Key
+                saveApiTypeCheckbox.checked = localStorage.getItem(LS_KEY_SAVE_APITYPE) !== 'false';
+                saveEndpointCheckbox.checked = localStorage.getItem(LS_KEY_SAVE_ENDPOINT) !== 'false';
+                saveModelNameCheckbox.checked = localStorage.getItem(LS_KEY_SAVE_MODELNAME) !== 'false';
+                saveApiKeyCheckbox.checked = localStorage.getItem(LS_KEY_SAVE_APIKEY) === 'true'; // API Key defaults to NOT saved
+
+                // Load values based on saved state or provide defaults
+                apiTypeSelect.value = saveApiTypeCheckbox.checked
+                    ? localStorage.getItem(LS_KEY_APITYPE) || apiTypeSelect.value
+                    : apiTypeSelect.value;
+                apiEndpointInput.value = saveEndpointCheckbox.checked
+                    ? localStorage.getItem(LS_KEY_ENDPOINT) || apiEndpointInput.value
+                    : apiEndpointInput.value;
+                modelNameInput.value = saveModelNameCheckbox.checked
+                    ? localStorage.getItem(LS_KEY_MODELNAME) || modelNameInput.value
+                    : modelNameInput.value;
+                apiKeyInput.value = saveApiKeyCheckbox.checked ? localStorage.getItem(LS_KEY_APIKEY) || '' : '';
+            }
+
+            /** Saves API settings to localStorage based on checkboxes. */
+            function saveSettings() {
+                localStorage.setItem(LS_KEY_APITYPE, apiTypeSelect.value);
+                localStorage.setItem(LS_KEY_SAVE_APITYPE, saveApiTypeCheckbox.checked);
+
+                if (saveEndpointCheckbox.checked) {
+                    localStorage.setItem(LS_KEY_ENDPOINT, apiEndpointInput.value);
+                } else {
+                    localStorage.removeItem(LS_KEY_ENDPOINT);
+                }
+                localStorage.setItem(LS_KEY_SAVE_ENDPOINT, saveEndpointCheckbox.checked);
+
+                if (saveModelNameCheckbox.checked) {
+                    localStorage.setItem(LS_KEY_MODELNAME, modelNameInput.value);
+                } else {
+                    localStorage.removeItem(LS_KEY_MODELNAME);
+                }
+                localStorage.setItem(LS_KEY_SAVE_MODELNAME, saveModelNameCheckbox.checked);
+
+                if (saveApiKeyCheckbox.checked) {
+                    localStorage.setItem(LS_KEY_APIKEY, apiKeyInput.value);
+                } else {
+                    localStorage.removeItem(LS_KEY_APIKEY);
+                }
+                localStorage.setItem(LS_KEY_SAVE_APIKEY, saveApiKeyCheckbox.checked);
+            }
+
+            /** Initializes the application. */
+            async function initializeApp() {
+                loadSavedSettings(); // Load settings first
+
+                try {
+                    status.textContent = '* reading the instruction manual... what a snore. (loading documentation...)';
+                    await fetchFiles(docFileNames, './Documentation', docsContent);
+
+                    status.textContent = '* lookin\' at how it\'s been done before. (loading examples...)';
+                    await fetchFiles(exampleFileNames, './Examples', examplesContent);
+
+                    status.textContent = "* it's a beautiful day outside.";
+                    generateBtn.disabled = false; // Enable button once everything is loaded
+                } catch (error) {
+                    console.error('Initialization Error:', error);
+                    status.textContent = `* couldn't load docs. Check console (F12) for network errors. Are you running a local web server? (${error.message})`;
+                    outputCode.textContent = '* whoops. looks like the instructions got lost. (Error: Could not load documentation files.)';
+                }
+            }
+
+            function buildFullPrompt(userRequest) {
+                let fullPrompt = `You are an expert generator for a game engine that creates 'Sans' attacks from Undertale.
+You will be given extensive documentation on how the engine works, including function definitions, parameters, and programming logic.
+You will also be given several complete, working examples of attacks.
+Your task is to generate a new attack based on the user's request, using the provided documentation and examples as a guide.
+
+**CRITICAL RULES:**
+1.  Your ONLY output must be the raw CSV data for the attack.
+2.  Do NOT include any explanations, greetings, or markdown code fences like \`\`\`csv or \`\`\`.
+3.  The first column is a time delay in seconds before the command on that line executes. It is NOT a timestamp. A value of 0 means it executes immediately after the previous command.
+4.  Ensure every attack script ends with the 'EndAttack' command, or the attack will loop forever.
+5.  Adhere strictly to the function names and argument order provided in the documentation.
+6.  Pay close attention to the programming functions like SET, ADD, JMP, RND, etc., to create dynamic and complex attacks. Variables are prefixed with '$' when their value is accessed.
+
+--- START OF DOCUMENTATION ---
+`;
+                for (const filename of docFileNames) {
+                    fullPrompt += `\n\n----- File: ${filename} -----\n${docsContent[filename].trim()}`;
+                }
+
+                fullPrompt += `\n\n--- END OF DOCUMENTATION ---`;
+                fullPrompt += `\n\n--- START OF GOOD EXAMPLES ---`;
+
+                for (const filename of exampleFileNames) {
+                    fullPrompt += `\n\n----- Example: ${filename} -----\n${examplesContent[filename].trim()}`;
+                }
+
+                fullPrompt += `\n\n--- END OF GOOD EXAMPLES ---`;
+                fullPrompt += `\n\n--- USER'S ATTACK REQUEST ---
+Based on all the documentation and examples provided, create an attack that matches the following description:
+"${userRequest}"`;
+
+                return fullPrompt;
+            }
+
+            // --- API Call Logic ---
+            // --- API Call Logic ---
+            async function makeApiRequest(apiType, apiEndpoint, modelName, apiKey, userPromptContent) {
+                // Outer try-catch for network errors, API non-OK responses, and general execution errors
+                try {
+                    const headers = {
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'SansAttackGenerator/1.0',
+                    };
+                    let requestUrl = apiEndpoint;
+                    let requestBody;
+
+                    // --- API Type Specific Request Body & Headers ---
+                    if (apiType === 'openai_compatible') {
+                        headers['Authorization'] = `Bearer ${apiKey}`;
+                        requestBody = {
+                            model: modelName,
+                            messages: [
+                                {
+                                    role: 'system',
+                                    content: `You are an expert generator for a game engine that creates 'Sans' attacks from Undertale. Your ONLY output must be the raw CSV data for the attack. Do NOT include any explanations, greetings, or markdown code fences. Adhere strictly to the provided documentation.
+
+**CRITICAL RULES:**
+1. Your ONLY output must be the raw CSV data for the attack.
+2. Do NOT include any explanations, greetings, or markdown code fences like \`\`\`csv or \`\`\`.
+3. The first column is a time delay in seconds before the command on that line executes. It is NOT a timestamp. A value of 0 means it executes immediately after the previous command.
+4. Ensure every attack script ends with the 'EndAttack' command, or the attack will loop forever.
+5. Adhere strictly to the function names and argument order provided in the documentation.
+6. Pay close attention to the programming functions like SET, ADD, JMP, RND, etc., to create dynamic and complex attacks. Variables are prefixed with '$' when their value is accessed.
+7. **When using labels for loops (e.g., :MyLabel), always use the label name directly in jump commands (e.g., JMPNZ MyLabel, $Counter). Do NOT calculate absolute line numbers for jumps to labels. A jump command must target the first instruction *inside* the loop's body, not the counter initialization.**`
+                                },
+                                { role: 'user', content: userPromptContent },
+                            ],
+                            temperature: 0.2,
+                            stream: false,
+                        };
+                    } else if (apiType === 'google_gemini') {
+                        headers['X-goog-api-key'] = apiKey;
+                        requestBody = {
+                            contents: [{
+                                parts: [{
+                                    text: `You are an expert generator for a game engine that creates 'Sans' attacks from Undertale. Your ONLY output must be the raw CSV data for the attack. Do NOT include any explanations, greetings, or markdown code fences. Adhere strictly to the provided documentation.
+
+${userPromptContent}`
+                                }]
+                            }],
+                        };
+                    } else {
+                        throw new Error(`Unsupported API type selected: ${apiType}`);
+                    }
+
+                    status.textContent = '* here goes nothin\'. (generating attack...)';
+                    outputCode.textContent = '...'; // Ensure output is reset on new generation attempt
+                    generateBtn.disabled = true;
+
+                    const response = await fetch(requestUrl, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(requestBody),
+                    });
+
+                    console.log("Raw API Response object:", response);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error("HTTP Error Response Body:", errorText);
+                        let displayMessage = `* API Error (Status ${response.status}): `;
+                        try {
+                            const errorData = JSON.parse(errorText);
+                            if (response.status === 429) {
+                                displayMessage = `* whoa, slow down there, buddy. give it a second. (Too many requests error)`;
+                            } else if (errorData.error && errorData.error.message) {
+                                displayMessage += errorData.error.message;
+                                if (displayMessage.includes("context length")) {
+                                    displayMessage = `* that's... a lot of words. try a model with a higher context. (Prompt too long for model error)`;
+                                } else if (displayMessage.includes("api_key") || errorData.error.type === "invalid_request_error" || displayMessage.includes("Unauthorized")) {
+                                    displayMessage = `* hey, that's not gonna work. check your key, maybe? (API Error / Invalid Key)`;
+                                }
+                            } else if (errorData.metadata && errorData.metadata.raw) {
+                                try {
+                                    const rawMetadata = JSON.parse(errorData.metadata.raw);
+                                    displayMessage += rawMetadata.message || rawMetadata.error || `Provider: ${errorData.provider_name || 'unknown'}. Raw: ${JSON.stringify(rawMetadata).substring(0, 200)}...`;
+                                    if (displayMessage.includes("context length")) {
+                                        displayMessage = `* that's... a lot of words. try a model with a higher context. (Prompt too long for model error)`;
+                                    }
+                                } catch (e) {
+                                    displayMessage += `Provider error: Raw metadata not valid JSON. First 200 chars: "${errorData.metadata.raw.substring(0, 200)}..."`;
+                                }
+                            } else {
+                                displayMessage += `Check console (F12) for raw response.`;
+                            }
+                        } catch (e) {
+                            displayMessage += `Could not parse error details. Raw response in console.`;
+                        }
+                        status.textContent = displayMessage;
+                        outputCode.textContent = ""; // Clear output on error
+                        throw new Error(`API Request Failed: ${displayMessage}`);
+                    }
+
+                    let data;
+                    // --- Fix: Added 'try' for JSON parsing specific errors ---
+                    try {
+                        data = await response.json();
+                        console.log("Parsed API Response Data:", data);
+                    } catch (jsonError) {
+                        const rawText = await response.text();
+                        console.error("JSON parsing error:", jsonError);
+                        console.error("Raw response body that caused JSON error (first 200 chars):", rawText.substring(0, 200) + "...");
+                        status.textContent = `* failed to parse API response as JSON. Raw response in console.`;
+                        outputCode.textContent = "";
+                        throw new Error(`JSON Parsing Failed: ${jsonError.message}`);
+                    }
+
+                    let generatedResult;
+                    // --- Extract content based on API type ---
+                    if (apiType === 'openai_compatible') {
+                        if (!data.choices || data.choices.length === 0 || !data.choices[0].message || typeof data.choices[0].message.content !== 'string') {
+                            status.textContent = `* API response unexpected format (OpenAI). Check console (F12).`;
+                            outputCode.textContent = "";
+                            throw new Error("OpenAI-compatible API response did not contain expected 'choices[0].message.content'.");
+                        }
+                        generatedResult = data.choices[0].message.content;
+                    } else if (apiType === 'google_gemini') {
+                        if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content || !data.candidates[0].content.parts || data.candidates[0].content.parts.length === 0 || typeof data.candidates[0].content.parts[0].text !== 'string') {
+                            status.textContent = `* API response unexpected format (Gemini). Check console (F12).`;
+                            outputCode.textContent = "";
+                            throw new Error("Google Gemini API response did not contain expected 'candidates[0].content.parts[0].text'.");
+                        }
+                        generatedResult = data.candidates[0].content.parts[0].text;
+                    } else {
+                        status.textContent = `* Internal error: Unknown API type for content extraction.`;
+                        outputCode.textContent = "";
+                        throw new Error("Internal error: Unknown API type during content extraction.");
+                    }
+
+                    // --- Content trimming logic (removes markdown fences and extraneous text) ---
+                    const endAttackSequence = "EndAttack";
+                    const endAttackIndex = generatedResult.lastIndexOf(endAttackSequence);
+                    if (endAttackIndex !== -1) {
+                        const endOfLineAfterEndAttack = generatedResult.indexOf('\n', endAttackIndex);
+                        if (endOfLineAfterEndAttack !== -1) {
+                            generatedResult = generatedResult.substring(0, endOfLineAfterEndAttack + 1);
+                        } else {
+                            generatedResult = generatedResult.substring(0, endAttackIndex + endAttackSequence.length);
+                        }
+                    } else {
+                        console.warn("WARNING: 'EndAttack' not found in generated content. Output may be incomplete or incorrect.");
+                        status.textContent = "* warning: EndAttack not found. Output might be broken.";
+                    }
+
+                    generatedResult = generatedResult.replace(/```csv\n?|```/g, '')
+                                                    .replace(/\r\n|\r/g, '\n')
+                                                    .trim();
+
+                    outputCode.textContent = generatedResult;
+                    if (!status.textContent.startsWith("* warning:")) {
+                        status.textContent = '* well. here we are.';
+                    }
+
+                } catch (error) { // This catch handles errors from the outer try block (network, API non-OK, or specific errors thrown above)
+                    console.error('Final Error Caught:', error);
+                    // Ensure status is set if it wasn't by a more specific error handling block
+                    if (!status.textContent.startsWith("*") || status.textContent.includes("... (generating)")) {
+                        status.textContent = `* something unexpected happened. (${error.message}). Check console (F12).`;
+                        outputCode.textContent = "";
+                    }
+                } finally {
+                    generateBtn.disabled = false;
+                }
+            }
+
+            // --- EVENT LISTENERS ---
+
+            // Enable/disable generate button based on user prompt length
+            userPromptInput.addEventListener('input', () => {
+                generateBtn.disabled = userPromptInput.value.trim().length === 0;
+            });
+
+            // Generate button click triggers API call
+            generateBtn.addEventListener('click', () => {
+                const userRequest = userPromptInput.value.trim();
+                if (userRequest.length === 0) {
+                    status.textContent = '* you gotta, uh, tell me what to do first. (please enter an attack description.)';
+                    outputCode.textContent = ""; // Clear output if prompt is empty
+                    return;
+                }
+
+                // Save current API settings based on save checkboxes
+                saveSettings();
+
+                // Build the full prompt for the LLM
+                const fullPrompt = buildFullPrompt(userRequest);
+
+                // Make the API request
+                makeApiRequest(
+                    apiTypeSelect.value,
+                    apiEndpointInput.value,
+                    modelNameInput.value,
+                    apiKeyInput.value,
+                    fullPrompt // Pass the fully constructed prompt
+                );
+            });
+
+            // Copy to clipboard button
+            copyBtn.addEventListener('click', () => {
+                const text = outputCode.textContent;
+                if (!text || text.trim().length === 0 || text.includes('Error')) { // Also check for "Error" text
+                    status.textContent = '* nothin\' to remember. (nothing to copy yet!)';
+                    return;
+                }
+                navigator.clipboard.writeText(text).then(() => {
+                    status.textContent = '* got it. (copied to clipboard!)';
+                    setTimeout(() => {
+                        status.textContent = '* well. here we are.'; // Revert status
+                    }, 2500);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    status.textContent = '* whoops, my hand slipped. (couldn\'t copy.)';
+                });
+            });
+
+            // Download button (save to CSV file)
+            downloadBtn.addEventListener('click', () => {
+                const text = outputCode.textContent;
+                if (!text || text.trim().length === 0 || text.includes('Error')) { // Also check for "Error" text
+                    status.textContent = '* can\'t take nothin\' with ya. (nothing to download yet!)';
+                    return;
+                }
+                const blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'sans_custom_attack.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                status.textContent = '* it\'s all yours. (attack downloaded!)';
+                setTimeout(() => {
+                    status.textContent = '* well. here we are.'; // Revert status
+                }, 2500);
+            });
+
+            // Save checkbox change handlers to save/remove from localStorage immediately
+            saveApiTypeCheckbox.addEventListener('change', saveSettings);
+            saveEndpointCheckbox.addEventListener('change', saveSettings);
+            saveModelNameCheckbox.addEventListener('change', saveSettings);
+            saveApiKeyCheckbox.addEventListener('change', saveSettings);
+
+            // Initialize app on load
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
